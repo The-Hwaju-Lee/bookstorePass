@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bookstore Pass</title>
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg1: #f0e4d7;
+      --bg2: #d4c1ec;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Raleway', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(120deg, var(--bg1), var(--bg2));
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding-top: 40px;
+    }
+
+    .card {
+      width: 533px;
+      height: 235px;
+      border-radius: 20px;
+      background: white;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      padding: 24px 32px 32px 32px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      margin-top: 128px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      font-size: 30px;
+      font-weight: 700;
+      color: #333;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .header::after {
+      content: '';
+      flex-grow: 1;
+      height: 1px;
+      background-color: #ddd;
+      margin-left: 16px;
+    }
+
+    .photo-box {
+      position: absolute;
+      top: 70px;
+      right: 32px;
+      width: 80px;
+      height: 100px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      background-color: #f4f4f4;
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .photo-box input {
+      display: none;
+    }
+
+    .photo-box label {
+      font-size: 24px;
+      color: #aaa;
+      cursor: pointer;
+    }
+
+    .info {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .line {
+      font-size: 16px;
+      color: #444;
+    }
+
+    .bold-label {
+      font-weight: 700;
+    }
+
+    .exp-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .exp-bar-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .exp-label {
+      font-size: 16px;
+      color: #444;
+    }
+
+    .exp-bar {
+      width: 100%;
+      height: 10px;
+      border-radius: 5px;
+      background: linear-gradient(to right, #ffe066, #f9a825, #ff6f61);
+    }
+
+    .exp-detail {
+      font-size: 13px;
+      color: #666;
+      text-align: right;
+    }
+
+    .footer {
+      font-size: 12px;
+      color: #aaa;
+      text-align: right;
+      margin-top: 0px;
+    }
+
+    .input-area {
+      width: 100%;
+      max-width: 600px;
+      margin-bottom: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 0 16px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 100px;
+      resize: vertical;
+      padding: 10px;
+      font-size: 14px;
+    }
+
+    button {
+      align-self: flex-start;
+      padding: 8px 16px;
+      font-size: 14px;
+      border: none;
+      background-color: #444;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="input-area" id="input-area">
+    <label>[ 회원증 텍스트를 복사/붙여넣기하세요. ]</label>
+    <textarea id="inputText"></textarea>
+    <button onclick="generateCard()"> 회원증 발급 </button>
+  </div>
+
+  <div class="card" id="card" style="display:none">
+    <div class="header">📚 BOOKSTORE PASS</div>
+    <div class="photo-box" id="photo-box">
+      <label for="upload">＋</label>
+      <input type="file" id="upload" accept="image/*" onchange="previewImage(event)" />
+    </div>
+    <div class="info">
+      <div class="line">× <span class="bold-label">Name</span> • <span id="name"></span></div>
+      <div class="line">× <span class="bold-label">Level</span> • <span id="level"></span></div>
+      <div class="exp-container">
+        <div class="exp-label">× <span class="bold-label">EXP</span> • <span id="exp-percent"></span></div>
+        <div class="exp-bar-group">
+          <div class="exp-bar" id="exp-bar"></div>
+          <div class="exp-detail" id="exp-detail"></div>
+        </div>
+      </div>
+    </div>
+    <div class="footer" id="footer"></div>
+  </div>
+
+  <script>
+    function normalizeFancyText(text) {
+      return text
+        .replace(/[𝐀-𝟿]/gu, ch => {
+          const code = ch.codePointAt(0);
+          if (code >= 0x1D400 && code <= 0x1D419) return String.fromCharCode(0x41 + code - 0x1D400);
+          if (code >= 0x1D41A && code <= 0x1D433) return String.fromCharCode(0x61 + code - 0x1D41A);
+          if (code >= 0x1D7CE && code <= 0x1D7D7) return String.fromCharCode(0x30 + code - 0x1D7CE);
+          return ch;
+        })
+        .replace(/[•·‧・･]/g, ':');
+    }
+
+    function generateCard() {
+      const raw = document.getElementById('inputText').value;
+      const text = normalizeFancyText(raw);
+      const nameMatch = text.match(/Name\s*:\s*(.+)/);
+      const levelMatch = text.match(/Level\s*:\s*(\d+)/);
+      const expMatch = text.match(/\((\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?)\)/);
+
+      if (!nameMatch || !levelMatch || !expMatch) {
+        alert('입력 형식을 다시 확인해주세요.');
+        return;
+      }
+
+      const name = nameMatch[1];
+      const level = parseInt(levelMatch[1]);
+      const current = parseFloat(expMatch[1]);
+      const max = parseFloat(expMatch[2]);
+      const percent = ((current / max) * 100).toFixed(1);
+
+      document.getElementById('input-area').style.display = 'none';
+      document.getElementById('card').style.display = 'flex';
+      document.getElementById('name').textContent = name;
+      document.getElementById('level').textContent = level;
+      document.getElementById('exp-percent').textContent = percent + '%';
+      document.getElementById('exp-bar').style.width = percent + '%';
+      document.getElementById('exp-detail').textContent = current + ' / ' + max;
+
+      const id = name.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+      const imgPath = `images/${id}.png`;
+      const photoEl = document.getElementById('photo-box');
+      const testImg = new Image();
+      testImg.onload = () => {
+        photoEl.style.backgroundImage = `url('${imgPath}')`;
+      };
+      testImg.onerror = () => {
+        photoEl.style.backgroundImage = 'none';
+      };
+      testImg.src = imgPath;
+
+      const now = new Date();
+      const stamp = now.toLocaleDateString('ko-KR') + ' ' + now.toLocaleTimeString('ko-KR', { hour12: false });
+      document.getElementById('footer').textContent = `발급 시각: ${stamp}`;
+    }
+
+    function previewImage(event) {
+      const reader = new FileReader();
+      reader.onload = function () {
+        document.getElementById('photo-box').style.backgroundImage = `url('${reader.result}')`;
+      };
+      reader.readAsDataURL(event.target.files[0]);
+    }
+
+    const gradients = [
+      ["#ffd3a5", "#fd6585"],
+      ["#a18cd1", "#fbc2eb"],
+      ["#ffecd2", "#fcb69f"],
+      ["#d4fc79", "#96e6a1"],
+      ["#84fab0", "#8fd3f4"],
+      ["#f6d365", "#fda085"],
+      ["#c2e9fb", "#a1c4fd"]
+    ];
+    const [bg1, bg2] = gradients[Math.floor(Math.random() * gradients.length)];
+    document.documentElement.style.setProperty('--bg1', bg1);
+    document.documentElement.style.setProperty('--bg2', bg2);
+  </script>
+</body>
+</html>
